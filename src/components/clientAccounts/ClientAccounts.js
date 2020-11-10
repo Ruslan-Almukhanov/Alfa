@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { makeStyles } from "@material-ui/core/styles";
 import Paper from "@material-ui/core/Paper";
 import Table from "@material-ui/core/Table";
@@ -13,7 +13,7 @@ import { data } from "../../data";
 import ImportExportIcon from "@material-ui/icons/ImportExport";
 import Visibility from "@material-ui/icons/Visibility";
 import styles from "./ClientAccounts.module.css";
-
+import { maskValue } from "../../helper";
 const useStyles = makeStyles({
   root: {
     width: "100%"
@@ -28,10 +28,25 @@ const useStyles = makeStyles({
 });
 
 const ClientAccounts = () => {
-  const [clients, setClients] = useState(data);
+  const [clients, setClients] = useState([]);
   const [sort, setSort] = useState(false);
   const [visible, setVisible] = useState(false);
+  let changedArray = [];
 
+  const currencies = [...new Set(data.map(item => item.currency))];
+
+  useEffect(() => {
+    data.map(item => {
+      changedArray.push({
+        ...item,
+        isVisible: true,
+        maskedValue: maskValue(item.accountNumber)
+      });
+    });
+    setClients(changedArray);
+  }, []);
+
+  changedArray = [];
   const classes = useStyles();
 
   const handleChange = e => {
@@ -56,27 +71,16 @@ const ClientAccounts = () => {
   };
 
   const visibleHandler = id => {
-    setVisible(!visible);
-    let newNumber,
-      firtsArr,
-      lastArr,
-      newArr = [];
-    if (!visible) {
-      const account = clients.find(client => client.id === id);
+    let account = clients.find(client => client.id === id);
+    const visible = account.isVisible
+    account = {
+      ...account,
+      isVisible: !visible
+    };
 
-      const number = account.accountNumber.split("");
-      firtsArr = number.slice(0, 2).join("");
-      lastArr = number.slice(-2).join("");
-      newNumber = number.slice(2, 34);
+    const newClients = clients.filter(client => client.id !== id);
 
-      const changedWords = newNumber.map((item, i) => {
-        return item !== "-" ? item.replace(item, "*") : item;
-      });
-
-      newArr.push(firtsArr, changedWords.join(""), lastArr);
-      newArr = newArr.join("");
-      account.accountNumber = newArr;
-    }
+    setClients([...newClients, account]);
   };
 
   return (
@@ -101,8 +105,13 @@ const ClientAccounts = () => {
                     value={clients.currency}
                   >
                     <option aria-label="None" value="" />
-                    <option value={"₤"}>₤</option>
-                    <option value={"₸"}>₸</option>
+                    {currencies.map((item, i) => {
+                      return (
+                        <option key={i} value={item}>
+                          {item}
+                        </option>
+                      );
+                    })}
                     <option value={"all"}>Все</option>
                   </Select>
                 </FormControl>
@@ -116,10 +125,14 @@ const ClientAccounts = () => {
                       className={styles.visible}
                       onClick={() => visibleHandler(client.id)}
                     />
-                    {client.accountNumber}
+                    {client.isVisible === true
+                      ? client.accountNumber
+                      : client.maskedValue}
                   </TableCell>
                   <TableCell>{client.sum}</TableCell>
-                  <TableCell>{client.currency}</TableCell>
+                  <TableCell>
+                    {client.currency}
+                  </TableCell>
                 </TableRow>
               );
             })}
