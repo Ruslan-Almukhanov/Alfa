@@ -1,5 +1,5 @@
 import './App.css';
-import ClientAccounts from './components/ClientAccounts'
+import ClientAccounts from './components/clientAccounts/ClientAccounts'
 
 function App() {
   return (

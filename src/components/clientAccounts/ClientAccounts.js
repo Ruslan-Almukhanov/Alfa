@@ -9,8 +9,11 @@ import TableRow from "@material-ui/core/TableRow";
 import Select from "@material-ui/core/Select";
 import InputLabel from "@material-ui/core/InputLabel";
 import FormControl from "@material-ui/core/FormControl";
-import { data } from "../data";
+import { data } from "../../data";
 import ImportExportIcon from "@material-ui/icons/ImportExport";
+import Visibility from "@material-ui/icons/Visibility";
+import VisibilityOff from "@material-ui/icons/VisibilityOff";
+import styles from './ClientAccounts.module.css' 
 
 const useStyles = makeStyles({
   root: {
@@ -27,10 +30,11 @@ const useStyles = makeStyles({
 
 const ClientAccounts = () => {
   const [clients, setClients] = useState(data);
-
+  const [sort, setSort] = useState(false);
+  const [visible, setVisible] = useState(false);
   const classes = useStyles();
 
-  const handleChange = (e, index, value) => {
+  const handleChange = e => {
     const target = e.target.value;
 
     setClients(() => {
@@ -40,6 +44,17 @@ const ClientAccounts = () => {
 
       return data.filter(client => client.currency !== e.target.value);
     });
+  };
+
+  const sortHandler = () => {
+    setSort(!sort);
+    setClients(() => {
+      const sortedClients = clients.sort((a, b) => a.sum - b.sum);
+      sort || sortedClients.reverse();
+      return sortedClients;
+    });
+
+    console.log(clients);
   };
   return (
     <Paper className={classes.root}>
@@ -70,10 +85,13 @@ const ClientAccounts = () => {
                 </FormControl>
               </TableCell>
             </TableRow>
-            {clients.map((client, index) => {
+            {clients.map((client) => {
               return (
-                <TableRow key={index}>
-                  <TableCell>{client.accountNumber}</TableCell>
+                <TableRow key={client.id}>
+                  <TableCell>
+                    {visible ? <Visibility className={styles.visible} onClick={() => visibleHandler(client.id)} /> : <VisibilityOff className={styles.visible} onClick={() => visibleHandler(client.id)}/>}
+                    {client.accountNumber}
+                  </TableCell>
                   <TableCell>{client.sum}</TableCell>
                   <TableCell>{client.currency}</TableCell>
                 </TableRow>
