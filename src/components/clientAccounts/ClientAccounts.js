@@ -12,8 +12,7 @@ import FormControl from "@material-ui/core/FormControl";
 import { data } from "../../data";
 import ImportExportIcon from "@material-ui/icons/ImportExport";
 import Visibility from "@material-ui/icons/Visibility";
-import VisibilityOff from "@material-ui/icons/VisibilityOff";
-import styles from './ClientAccounts.module.css' 
+import styles from "./ClientAccounts.module.css";
 
 const useStyles = makeStyles({
   root: {
@@ -32,6 +31,7 @@ const ClientAccounts = () => {
   const [clients, setClients] = useState(data);
   const [sort, setSort] = useState(false);
   const [visible, setVisible] = useState(false);
+
   const classes = useStyles();
 
   const handleChange = e => {
@@ -53,9 +53,32 @@ const ClientAccounts = () => {
       sort || sortedClients.reverse();
       return sortedClients;
     });
-
-    console.log(clients);
   };
+
+  const visibleHandler = id => {
+    setVisible(!visible);
+    let newNumber,
+      firtsArr,
+      lastArr,
+      newArr = [];
+    if (!visible) {
+      const account = clients.find(client => client.id === id);
+
+      const number = account.accountNumber.split("");
+      firtsArr = number.slice(0, 2).join("");
+      lastArr = number.slice(-2).join("");
+      newNumber = number.slice(2, 34);
+
+      const changedWords = newNumber.map((item, i) => {
+        return item !== "-" ? item.replace(item, "*") : item;
+      });
+
+      newArr.push(firtsArr, changedWords.join(""), lastArr);
+      newArr = newArr.join("");
+      account.accountNumber = newArr;
+    }
+  };
+
   return (
     <Paper className={classes.root}>
       <TableContainer className={classes.container}>
@@ -85,11 +108,14 @@ const ClientAccounts = () => {
                 </FormControl>
               </TableCell>
             </TableRow>
-            {clients.map((client) => {
+            {clients.map(client => {
               return (
                 <TableRow key={client.id}>
                   <TableCell>
-                    {visible ? <Visibility className={styles.visible} onClick={() => visibleHandler(client.id)} /> : <VisibilityOff className={styles.visible} onClick={() => visibleHandler(client.id)}/>}
+                    <Visibility
+                      className={styles.visible}
+                      onClick={() => visibleHandler(client.id)}
+                    />
                     {client.accountNumber}
                   </TableCell>
                   <TableCell>{client.sum}</TableCell>
