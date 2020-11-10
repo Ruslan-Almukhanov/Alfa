@@ -1,19 +1,17 @@
 import React, { useState, useEffect } from "react";
 import { makeStyles } from "@material-ui/core/styles";
 import Paper from "@material-ui/core/Paper";
+import TableRow from "@material-ui/core/TableRow";
 import Table from "@material-ui/core/Table";
 import TableBody from "@material-ui/core/TableBody";
 import TableCell from "@material-ui/core/TableCell";
 import TableContainer from "@material-ui/core/TableContainer";
-import TableRow from "@material-ui/core/TableRow";
 import Select from "@material-ui/core/Select";
 import InputLabel from "@material-ui/core/InputLabel";
 import FormControl from "@material-ui/core/FormControl";
 import { data } from "../../data";
-import ImportExportIcon from "@material-ui/icons/ImportExport";
-import Visibility from "@material-ui/icons/Visibility";
-import styles from "./ClientAccounts.module.css";
 import { maskValue } from "../../helper";
+import TablesRow from "../formElements/tableRow";
 const useStyles = makeStyles({
   root: {
     width: "100%"
@@ -30,7 +28,7 @@ const useStyles = makeStyles({
 const ClientAccounts = () => {
   const [clients, setClients] = useState([]);
   const [sort, setSort] = useState(false);
-  const [visible, setVisible] = useState(false);
+
   let changedArray = [];
 
   const currencies = [...new Set(data.map(item => item.currency))];
@@ -61,26 +59,28 @@ const ClientAccounts = () => {
     });
   };
 
-  const sortHandler = () => {
+  const sortHandler = e => {
+    const target = e.target.value;
+    let sortedClients = [];
+    if (target === "max") {
+      sortedClients = clients.sort((a, b) => a.sum - b.sum);
+    } else if (target === "min") {
+      sortedClients = clients.sort((a, b) => a.sum - b.sum).reverse();
+    } else {
+      sortedClients = clients;
+    }
+
+    setClients(sortedClients);
     setSort(!sort);
-    setClients(() => {
-      const sortedClients = clients.sort((a, b) => a.sum - b.sum);
-      sort || sortedClients.reverse();
-      return sortedClients;
-    });
   };
 
   const visibleHandler = id => {
     let account = clients.find(client => client.id === id);
-    const visible = account.isVisible
-    account = {
-      ...account,
-      isVisible: !visible
-    };
-
-    const newClients = clients.filter(client => client.id !== id);
-
-    setClients([...newClients, account]);
+    const visible = account.isVisible;
+    const newClient = clients.map(client =>
+      client.id === id ? { ...client, isVisible: !visible } : client
+    );
+    setClients(newClient);
   };
 
   return (
@@ -91,7 +91,22 @@ const ClientAccounts = () => {
             <TableRow>
               <TableCell></TableCell>
               <TableCell>
-                <ImportExportIcon onClick={sortHandler} />
+                <FormControl variant="outlined" className={classes.formControl}>
+                  <InputLabel htmlFor="outlined-age-native-simple">
+                    Фильтр
+                  </InputLabel>
+                  <Select
+                    onChange={sortHandler}
+                    native
+                    label="Фильтр"
+                    value={clients.currency}
+                  >
+                    <option aria-label="None" value="" />
+                    <option value={"max"}>По Возрастанию</option>
+                    <option value={"min"}>По Убыванию</option>
+                    <option value={"def"}>По умолчанию</option>
+                  </Select>
+                </FormControl>
               </TableCell>
               <TableCell>
                 <FormControl variant="outlined" className={classes.formControl}>
@@ -119,21 +134,11 @@ const ClientAccounts = () => {
             </TableRow>
             {clients.map(client => {
               return (
-                <TableRow key={client.id}>
-                  <TableCell>
-                    <Visibility
-                      className={styles.visible}
-                      onClick={() => visibleHandler(client.id)}
-                    />
-                    {client.isVisible === true
-                      ? client.accountNumber
-                      : client.maskedValue}
-                  </TableCell>
-                  <TableCell>{client.sum}</TableCell>
-                  <TableCell>
-                    {client.currency}
-                  </TableCell>
-                </TableRow>
+                <TablesRow
+                  key={client.id}
+                  client={client}
+                  visibleHandler={visibleHandler}
+                />
               );
             })}
           </TableBody>
