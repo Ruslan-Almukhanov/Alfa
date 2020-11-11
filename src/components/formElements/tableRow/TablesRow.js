@@ -12,9 +12,7 @@ const TablesRow = ({ client, visibleHandler}) => {
 					className={styles.visible}
 					onClick={() => visibleHandler(client.id)}
 				/>
-				{client.isVisible === true
-					? client.accountNumber
-					: client.maskedValue}
+				{client.isVisible ? client.accountNumber : client.maskedValue}
 			</TableCell>
 			<TableCell>{client.sum}</TableCell>
 			<TableCell>

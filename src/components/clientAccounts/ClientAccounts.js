@@ -52,22 +52,48 @@ const ClientAccounts = () => {
 
     setClients(() => {
       if (target != "all") {
-        return data.filter(client => client.currency == e.target.value);
+        const newArr = data.filter(client => client.currency == e.target.value);
+        return newArr.map(client =>
+          client
+            ? {
+              ...client,
+              isVisible: true,
+              maskedValue: maskValue(client.accountNumber)
+            }
+            : client
+        );
       }
 
-      return data.filter(client => client.currency !== e.target.value);
+      return data.map(client =>
+        client
+          ? {
+            ...client,
+            isVisible: true,
+            maskedValue: maskValue(client.accountNumber)
+          }
+          : client
+      );
     });
   };
 
   const sortHandler = e => {
     const target = e.target.value;
     let sortedClients = [];
+
     if (target === "max") {
-      sortedClients = clients.sort((a, b) => a.sum - b.sum);
+      sortedClients = [...clients].sort((a, b) => a.sum - b.sum);
     } else if (target === "min") {
-      sortedClients = clients.sort((a, b) => a.sum - b.sum).reverse();
+      sortedClients = [...clients].sort((a, b) => a.sum - b.sum).reverse();
     } else {
-      sortedClients = clients;
+      sortedClients = data.map(client =>
+        client
+          ? {
+              ...client,
+              isVisible: true,
+              maskedValue: maskValue(client.accountNumber)
+            }
+          : client
+      );
     }
 
     setClients(sortedClients);
