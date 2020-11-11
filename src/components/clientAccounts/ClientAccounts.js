@@ -44,7 +44,6 @@ const ClientAccounts = () => {
     setClients(changedArray);
   }, []);
 
-  changedArray = [];
   const classes = useStyles();
 
   const handleChange = e => {
