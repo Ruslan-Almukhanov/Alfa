@@ -12,6 +12,7 @@ import FormControl from "@material-ui/core/FormControl";
 import { data } from "../../data";
 import { maskValue } from "../../helper";
 import TablesRow from "../formElements/tableRow";
+
 const useStyles = makeStyles({
   root: {
     width: "100%"
@@ -29,41 +30,18 @@ const ClientAccounts = () => {
   const [clients, setClients] = useState([]);
   const [sort, setSort] = useState(false);
 
-  let changedArray = [];
-
-  const currencies = [...new Set(data.map(item => item.currency))];
-
-  useEffect(() => {
-    data.map(item => {
-      changedArray.push({
-        ...item,
-        isVisible: true,
-        maskedValue: maskValue(item.accountNumber)
-      });
-    });
-    setClients(changedArray);
-  }, []);
-
   const classes = useStyles();
 
-  const handleChange = e => {
-    const target = e.target.value;
+  //=== === === === SORT - FUNCTION === === === === ===
+  let sortedClients = [];
+  const sortClients = arr => {
+    sortedClients = [...arr].sort((a, b) => a.sum - b.sum);
+    return sortedClients;
+  };
 
-    setClients(() => {
-      if (target != "all") {
-        const newArr = data.filter(client => client.currency == e.target.value);
-        return newArr.map(client =>
-          client
-            ? {
-              ...client,
-              isVisible: true,
-              maskedValue: maskValue(client.accountNumber)
-            }
-            : client
-        );
-      }
-
-      return data.map(client =>
+  //=== === === === EXTEND THE ORIGINAL DATA === === === 
+  const extendOriginalArr = arr => {    
+      return arr.map(client =>
         client
           ? {
             ...client,
@@ -72,33 +50,42 @@ const ClientAccounts = () => {
           }
           : client
       );
-    });
   };
 
+  const currencies = [...new Set(data.map(item => item.currency))];
+
+  //=== === === === SET EXTENDED DATA === === === === 
+  useEffect(() => {
+    setClients(extendOriginalArr(data));
+  }, []);
+
+  //=== === === === FILTER BY CURRENCY === === === === 
+  const handleChange = e => {
+    const target = e.target.value;
+      if (target != "all") {
+        const newArr = data.filter(client => client.currency == e.target.value);
+        setClients(extendOriginalArr(newArr))
+        return
+      }      
+    setClients(extendOriginalArr(data))
+  };
+
+  //=== === === === SORT EVENT === === === === 
   const sortHandler = e => {
     const target = e.target.value;
-    let sortedClients = [];
-
     if (target === "max") {
-      sortedClients = [...clients].sort((a, b) => a.sum - b.sum);
+      sortClients(clients);
     } else if (target === "min") {
-      sortedClients = [...clients].sort((a, b) => a.sum - b.sum).reverse();
+      sortClients(clients).reverse();
     } else {
-      sortedClients = data.map(client =>
-        client
-          ? {
-              ...client,
-              isVisible: true,
-              maskedValue: maskValue(client.accountNumber)
-            }
-          : client
-      );
+      sortedClients = extendOriginalArr(data)
     }
 
     setClients(sortedClients);
     setSort(!sort);
   };
 
+  //=== === === === SHOW/HIDE ACCOUNT NUMBER === === === === 
   const visibleHandler = id => {
     let account = clients.find(client => client.id === id);
     const visible = account.isVisible;
@@ -114,7 +101,7 @@ const ClientAccounts = () => {
         <Table>
           <TableBody>
             <TableRow>
-              <TableCell></TableCell>
+              <TableCell />
               <TableCell>
                 <FormControl variant="outlined" className={classes.formControl}>
                   <InputLabel htmlFor="outlined-age-native-simple">
